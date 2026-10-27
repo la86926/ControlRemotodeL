@@ -1,5 +1,7 @@
 # Control Remoto L — Android (versión de prueba)
 
+Versión 1.1 beta: Samsung con modo Selección por giroscopio/panel táctil (flechas + OK) y modo Puntero experimental; LG conserva su puntero webOS.
+
 App Android sin anuncios, sin nube y sin cuentas. Habla directamente con TVs LG (webOS) y Samsung (Tizen) mediante WebSocket en Wi-Fi local. Interfaz en español: giroscopio, panel táctil, botón grande de clic, flechas, volumen y teclado.
 
 ## Instalar / compilar
@@ -25,7 +27,8 @@ No es necesario GitHub. Como alternativa, el flujo incluido en `.github/workflow
 ## Compatibilidad y limitaciones
 
 - **LG webOS:** utiliza `wss:3001` con alternativa `ws:3000`; SSAP para permiso, texto y comandos; socket de puntero para clic, movimiento y navegación. Algunas pantallas/apps bloquean la entrada de teclado. El soporte varía por firmware.
-- **Samsung Tizen:** utiliza `wss:8002` con alternativa `ws:8001`; comandos de control remoto, texto por IME (SendInputString) y el comando de mouse `ProcessMouseDevice`. **No existe garantía de cursor libre ni de teclado universal en todos los modelos**. Usa las flechas como alternativa.
+- **Samsung Tizen:** Para NU7090 usa **Selección** (predeterminado): mover el teléfono o deslizar en el panel desplaza el foco mediante flechas; el botón grande confirma con OK. **Puntero (prueba)** envía eventos de mouse reales, pero pueden ser ignorados por el televisor.
+- **Samsung Tizen, protocolo:** utiliza `wss:8002` con alternativa `ws:8001`; comandos de control remoto, texto por IME (SendInputString) y el comando de mouse `ProcessMouseDevice`. **No existe garantía de cursor libre ni de teclado universal en todos los modelos**. Usa las flechas como alternativa.
 - La escritura requiere **un campo de texto previamente seleccionado** en la TV. Puede fallar en Netflix, YouTube u otras apps que usan teclados propios.
 - El encendido desde apagado **no está implementado** (requiere Wake-on-LAN y configuración). Sí se incluye apagar la TV conectada.
 - El movimiento del cursor Samsung usa coordenadas virtuales dentro de 1920×1080 como punto de partida; requiere ajustes/prueba en modelos reales.

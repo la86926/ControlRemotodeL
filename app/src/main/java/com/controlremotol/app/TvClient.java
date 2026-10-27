@@ -2,6 +2,7 @@ package com.controlremotol.app;
 
 import android.content.SharedPreferences;
 import android.util.Base64;
+import android.os.SystemClock;
 import org.json.JSONObject;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +26,24 @@ final class TvClient {
     private volatile boolean ready = false;
     private volatile int generation = 0;
     private int samsungX = 960, samsungY = 540;
+    // 2018 Samsung sets may accept virtual keys but silently ignore virtual mouse.
+    // NAV mode translates hand gestures into real remote direction keys.
+    private volatile boolean samsungNavigationMode = true;
+    private double navigationX = 0, navigationY = 0;
+    private long navigationLastCommand = 0;
+
+    void setCursorMode(String mode) {
+        samsungNavigationMode = !"POINTER".equals(mode);
+        synchronized (motionLock) {
+            navigationX = navigationY = pendingX = pendingY = 0;
+            navigationLastCommand = 0;
+        }
+        if (ready && "SAMSUNG".equals(brand)) {
+            observer.status("connected", samsungNavigationMode
+                ? "Samsung conectada · Movimiento = flechas, clic = OK."
+                : "Samsung conectada · Puntero experimental; puede no funcionar.");
+        }
+    }
 
     TvClient(SharedPreferences prefs, Observer observer) {
         this.prefs = prefs;
@@ -36,6 +55,10 @@ final class TvClient {
         ip = host;
         int cycle = ++generation;
         ready = false;
+        synchronized (motionLock) {
+            navigationX = navigationY = pendingX = pendingY = 0;
+            navigationLastCommand = 0;
+        }
         observer.status("connecting", "Buscando televisor en " + ip + "…");
         io.execute(() -> {
             discardSockets();
@@ -182,7 +205,9 @@ final class TvClient {
                 String token = data == null ? "" : data.optString("token","");
                 if(!token.isEmpty()) prefs.edit().putString("samsung_token_"+ip,token).apply();
                 ready = true;
-                observer.status("connected", "Samsung conectada. El cursor depende del modelo.");
+                observer.status("connected", samsungNavigationMode
+                    ? "Samsung conectada · Movimiento = flechas, clic = OK."
+                    : "Samsung conectada · Puntero experimental; puede no funcionar.");
             } else if ("ms.channel.unauthorized".equals(event)) {
                 ready = false;
                 observer.status("error", "Acceso denegado por la Samsung.");
@@ -225,6 +250,10 @@ final class TvClient {
     }
 
     void click() {
+        if ("SAMSUNG".equals(brand) && samsungNavigationMode) {
+            button("ENTER");
+            return;
+        }
         io.execute(() -> {
             if (!ready) return;
             try {
@@ -242,7 +271,11 @@ final class TvClient {
     }
 
     void move(double dx, double dy) {
-        if (!ready) return;
+        if (!ready || !Double.isFinite(dx) || !Double.isFinite(dy)) return;
+        if ("SAMSUNG".equals(brand) && samsungNavigationMode) {
+            moveSamsungSelection(dx, dy);
+            return;
+        }
         synchronized (motionLock) { pendingX += dx; pendingY += dy; }
         if (motionQueued.compareAndSet(false, true)) {
             io.execute(() -> {
@@ -268,6 +301,27 @@ final class TvClient {
                 } catch(Exception ignored) {}
             });
         }
+    }
+
+    // Convert accumulated touchpad/gyro movement to one directional key per gesture.
+    // Threshold avoids jitter and cooldown prevents excessive menu scrolling.
+    private void moveSamsungSelection(double dx, double dy) {
+        String direction;
+        synchronized (motionLock) {
+            navigationX = Math.max(-400, Math.min(400, navigationX + dx));
+            navigationY = Math.max(-400, Math.min(400, navigationY + dy));
+            long now = SystemClock.elapsedRealtime();
+            if (now - navigationLastCommand < 220) return;
+            if (Math.max(Math.abs(navigationX), Math.abs(navigationY)) < 110) return;
+            if (Math.abs(navigationX) >= Math.abs(navigationY)) {
+                direction = navigationX < 0 ? "LEFT" : "RIGHT";
+            } else {
+                direction = navigationY < 0 ? "UP" : "DOWN";
+            }
+            navigationX = navigationY = 0;
+            navigationLastCommand = now;
+        }
+        button(direction);
     }
 
     void text(String value) {

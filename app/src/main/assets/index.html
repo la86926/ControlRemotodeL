@@ -39,6 +39,7 @@ button{cursor:pointer;font-family:inherit;touch-action:manipulation}
 .section-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
 .section-head h2{margin:0}
 .micro{font-size:11px;font-weight:650;color:#678475}
+.mode-note{font-size:11px;line-height:1.5;color:var(--soft);margin:4px 0 13px}
 .motion-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .motion-row p{font-size:11px;color:var(--soft);margin:5px 0 0}
 .switch{width:49px;height:29px;border:0;border-radius:18px;background:#dce7df;display:flex;align-items:center;padding:4px;transition:background .2s;flex-shrink:0}
@@ -88,12 +89,19 @@ button{cursor:pointer;font-family:inherit;touch-action:manipulation}
 </section>
 <section class="panel">
   <div class="section-head"><h2>Cursor inteligente</h2><span class="micro">AIR MOUSE</span></div>
+  <div id="samsungModes" hidden>
+    <div class="segment" role="group" aria-label="Modo de movimiento">
+      <button id="navMode" class="active" onclick="chooseMode('NAV')">Selección</button>
+      <button id="pointerMode" onclick="chooseMode('POINTER')">Puntero (prueba)</button>
+    </div>
+    <p class="mode-note" id="modeNote">Recomendado para Samsung: mueve el celular para cambiar de opción y pulsa el botón grande para seleccionar.</p>
+  </div>
   <div class="motion-row"><div><strong style="font-size:13px">Mover el celular</strong><p>Actívalo y mueve la mano</p></div><button id="motion" class="switch" aria-label="Activar movimiento" aria-pressed="false" onclick="toggleMotion()"><span class="knob"></span></button></div>
   <div id="pad" class="trackpad" aria-label="Panel táctil para mover el cursor">
     <svg viewBox="0 0 24 24"><path d="M8 8h8v8H8z"/><path d="M12 1v5m0 12v5M1 12h5m12 0h5"/><path d="m9.6 3 2.4-2 2.4 2M9.6 21l2.4 2 2.4-2M3 9.6 1 12l2 2.4M21 9.6l2 2.4-2 2.4"/></svg>
     <span>Desliza aquí para mover el puntero</span>
   </div>
-  <button class="bigclick" onclick="RemoteL.click()"><strong>HACER CLIC</strong><span>Seleccionar en la pantalla</span></button>
+  <button class="bigclick" onclick="RemoteL.click()"><strong id="clickLabel">HACER CLIC</strong><span id="clickHelp">Seleccionar en la pantalla</span></button>
   <div class="sliderrow"><span>Sensibilidad</span><input aria-label="Sensibilidad" type="range" id="sensitivity" min="0.2" max="3" step="0.1" value="1" oninput="changeSensitivity(this.value)"/><output id="sensitivityText">1.0×</output></div>
 </section>
 <section class="panel slim">
@@ -119,12 +127,14 @@ button{cursor:pointer;font-family:inherit;touch-action:manipulation}
     <button class="control" onclick="RemoteL.button('CHDOWN')"><b>↓</b><span>Canal</span></button>
   </div>
 </section>
-<p class="help">Algunas aplicaciones de TV restringen el cursor o la escritura remota. En Samsung puedes usar las flechas y OK cuando no aparezca el puntero.</p>
-<p class="note">Control Remoto L · Versión de prueba 1.0</p>
+<p class="help">En Samsung NU7090 y otros modelos, el puntero libre puede no estar disponible. El modo Selección utiliza flechas y OK sin necesitar cursor. LG mantiene su modo de puntero independiente.</p>
+<p class="note">Control Remoto L · Versión de prueba 1.1</p>
 </main>
 <script>
-let brand='LG',motion=false,lastTouch=null;
-function brandPick(v){brand=v;document.getElementById('lg').classList.toggle('active',v==='LG');document.getElementById('samsung').classList.toggle('active',v==='SAMSUNG');}
+let brand='LG',motion=false,lastTouch=null,cursorMode='NAV';
+function brandPick(v){brand=v;document.getElementById('lg').classList.toggle('active',v==='LG');document.getElementById('samsung').classList.toggle('active',v==='SAMSUNG');document.getElementById('samsungModes').hidden=v!=='SAMSUNG';renderCursorMode();}
+function chooseMode(v){cursorMode=v==='POINTER'?'POINTER':'NAV';RemoteL.cursorMode(cursorMode);renderCursorMode();}
+function renderCursorMode(){let samsung=brand==='SAMSUNG',nav=cursorMode==='NAV';document.getElementById('navMode').classList.toggle('active',nav);document.getElementById('pointerMode').classList.toggle('active',!nav);document.getElementById('modeNote').textContent=nav?'Recomendado: mueve el celular para desplazarte entre opciones y pulsa el botón grande para confirmar.':'Experimental: intenta mover el cursor real. Algunos Samsung ignoran esta función.';document.getElementById('clickLabel').textContent=samsung&&nav?'OK · SELECCIONAR':'HACER CLIC';document.getElementById('clickHelp').textContent=samsung&&nav?'Equivale al botón OK del control remoto':'Seleccionar en la pantalla';}
 function connectTV(){const ip=document.getElementById('ip').value.trim();if(!ip){updateStatus('error','Escribe la dirección IP de la TV.');return;}RemoteL.connect(brand,ip);}
 function updateStatus(state,description){const e=document.getElementById('status');e.dataset.state=state;document.getElementById('statusText').textContent=description;}
 function toggleMotion(){motion=!motion;document.getElementById('motion').classList.toggle('on',motion);document.getElementById('motion').setAttribute('aria-pressed',motion?'true':'false');RemoteL.motion(motion);}
@@ -136,7 +146,7 @@ pad.addEventListener('pointerdown',ev=>{lastTouch={x:ev.clientX,y:ev.clientY,t:D
 pad.addEventListener('pointermove',ev=>{if(!lastTouch)return;const dx=(ev.clientX-lastTouch.x)*1.9,dy=(ev.clientY-lastTouch.y)*1.9;lastTouch.x=ev.clientX;lastTouch.y=ev.clientY;RemoteL.move(dx,dy);});
 pad.addEventListener('pointerup',()=>{lastTouch=null});
 pad.addEventListener('pointercancel',()=>{lastTouch=null});
-try{const s=JSON.parse(RemoteL.settings());if(s.ip)document.getElementById('ip').value=s.ip;if(s.brand)brandPick(s.brand);if(s.sensitivity){document.getElementById('sensitivity').value=s.sensitivity;document.getElementById('sensitivityText').textContent=Number(s.sensitivity).toFixed(1)+'×'}if(!s.gyroAvailable){document.querySelector('.motion-row p').textContent='Sin giroscopio; usa el panel táctil';}}catch(e){}
+try{const s=JSON.parse(RemoteL.settings());if(s.ip)document.getElementById('ip').value=s.ip;if(s.cursorMode)cursorMode=s.cursorMode;if(s.brand)brandPick(s.brand);if(s.sensitivity){document.getElementById('sensitivity').value=s.sensitivity;document.getElementById('sensitivityText').textContent=Number(s.sensitivity).toFixed(1)+'×'}if(!s.gyroAvailable){document.querySelector('.motion-row p').textContent='Sin giroscopio; usa el panel táctil';}}catch(e){}
 </script>
 </body>
 </html>

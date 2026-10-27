@@ -38,6 +38,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         tv = new TvClient(prefs, (code, detail) -> runOnUiThread(() -> {
             if (web != null) web.evaluateJavascript("window.updateStatus(" + JSONObject.quote(code) + "," + JSONObject.quote(detail) + ")", null);
         }));
+        tv.setCursorMode(prefs.getString("cursorMode", "NAV"));
         web = new WebView(this);
         web.setBackgroundColor(Color.rgb(246,248,246));
         web.getSettings().setJavaScriptEnabled(true);
@@ -59,12 +60,18 @@ public class MainActivity extends Activity implements SensorEventListener {
                 out.put("brand", prefs.getString("brand", "LG"));
                 out.put("sensitivity", prefs.getFloat("sensitivity", 1.0f));
                 out.put("gyroAvailable", gyroscope != null);
+                out.put("cursorMode", prefs.getString("cursorMode", "NAV"));
             } catch (Exception ignored) {}
             return out.toString();
         }
         @JavascriptInterface public void connect(String brand, String ip) {
             prefs.edit().putString("ip", ip.trim()).putString("brand", brand).apply();
             tv.connect(brand, ip.trim());
+        }
+        @JavascriptInterface public void cursorMode(String mode) {
+            String normalized = "POINTER".equals(mode) ? "POINTER" : "NAV";
+            prefs.edit().putString("cursorMode", normalized).apply();
+            tv.setCursorMode(normalized);
         }
         @JavascriptInterface public void button(String name) { tv.button(name); }
         @JavascriptInterface public void click() { tv.click(); }
