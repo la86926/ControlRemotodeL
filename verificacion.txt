@@ -1,0 +1,1 @@
+Verificación automática de la compilación de Control Remoto L en GitHub Actions.
