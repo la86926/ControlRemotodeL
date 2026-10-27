@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Control Remoto L</title>
+<style>
+:root{color-scheme:light;--ink:#162920;--soft:#728378;--bg:#f5f7f5;--dark:#165d49;--dark2:#114b3a;--mint:#e7f2eb;--card:#fff;--stroke:#e6ede7;--shadow:0 9px 30px rgba(27,71,47,.055)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{font-family:system-ui,-apple-system,Roboto,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:21px 17px calc(28px + env(safe-area-inset-bottom));min-height:100vh}
+main{width:100%;max-width:460px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;margin:0 2px 20px}
+.logo{height:45px;width:45px;border-radius:15px;background:var(--dark);display:grid;place-items:center;color:white;font-weight:750;font-size:25px;letter-spacing:-1.5px}
+.header-left{display:flex;align-items:center;gap:11px}
+h1{font-size:20px;margin:0;font-weight:760;letter-spacing:-.8px}
+.subtitle{color:#7b8a80;font-size:11px;margin:3px 0 0;letter-spacing:.25px}
+.chip{font-size:10px;font-weight:700;letter-spacing:.3px;background:#e9f3ec;color:#246950;border-radius:12px;padding:8px 10px}
+.panel{background:var(--card);border:1px solid var(--stroke);border-radius:25px;box-shadow:var(--shadow);padding:17px;margin-bottom:14px}
+.panel.slim{padding:16px}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h2{font-size:15px;letter-spacing:-.3px;margin:0 0 14px;font-weight:740}
+.legend{font-size:12px;color:var(--soft);line-height:1.55;margin:7px 0 13px}
+.segment{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#f1f4f0;padding:4px;border-radius:13px;margin-bottom:12px}
+.segment button{border:0;background:transparent;color:#819085;min-height:39px;border-radius:10px;font-size:13px;font-weight:690}
+.segment button.active{color:var(--dark2);background:white;box-shadow:0 2px 8px #163c2310}
+.iprow{display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:9px}
+input[type=text]{font-family:inherit;width:100%;border:1px solid #dce5dd;background:#fafcfa;outline:none;border-radius:13px;padding:12px;font-size:14px;color:var(--ink)}
+input:focus{border-color:#60a68c;box-shadow:0 0 0 3px rgba(81,151,114,.11)}
+input::placeholder{color:#a8b4aa}
+button{cursor:pointer;font-family:inherit;touch-action:manipulation}
+.primary{border:0;background:var(--dark);color:#fff;border-radius:13px;font-size:13px;font-weight:680;padding:13px 9px;min-height:45px}
+.primary:active,.bigclick:active{transform:scale(.985);filter:brightness(.96)}
+.status{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:#708478;line-height:1.4}
+.dot{background:#c8d4cb;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status[data-state=connected] .dot{background:#38a77d;box-shadow:0 0 0 3px #e4f4eb}
+.status[data-state=error] .dot{background:#d87c6e}
+.status[data-state=connecting] .dot,.status[data-state=pairing] .dot{background:#dfad56}
+.section-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
+.section-head h2{margin:0}
+.micro{font-size:11px;font-weight:650;color:#678475}
+.motion-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.motion-row p{font-size:11px;color:var(--soft);margin:5px 0 0}
+.switch{width:49px;height:29px;border:0;border-radius:18px;background:#dce7df;display:flex;align-items:center;padding:4px;transition:background .2s;flex-shrink:0}
+.switch .knob{width:21px;height:21px;background:white;border-radius:50%;box-shadow:0 1px 3px #153b3030;transition:transform .2s}
+.switch.on{background:#277456}
+.switch.on .knob{transform:translateX(20px)}
+.trackpad{height:116px;background:linear-gradient(120deg,#eef5ef,#f9fcf9);border:1px dashed #a6c6b0;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#5b8a71;touch-action:none;user-select:none;-webkit-user-select:none}
+.trackpad:active{background:#e0f0e6}
+.trackpad svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.65}
+.trackpad span{font-size:11px;font-weight:640}
+.bigclick{width:100%;height:106px;margin-top:12px;border:0;background:linear-gradient(135deg,#206f54,#10533e);border-radius:22px;color:#fff;box-shadow:0 7px 18px #1f70551c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;transition:transform .12s}
+.bigclick strong{font-size:17px;font-weight:750;letter-spacing:.3px}
+.bigclick span{font-size:11px;opacity:.76}
+.sliderrow{display:flex;align-items:center;gap:10px;padding:12px 2px 1px;font-size:11px;font-weight:650;color:#75877b}
+.sliderrow input{flex:1;min-width:20px;accent-color:#287a5a;height:16px}
+.sliderrow output{min-width:30px;text-align:right;color:var(--dark)}
+.navgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:265px;margin:0 auto}
+.key{border:1px solid #e5ebe5;background:#f5f8f5;color:var(--dark2);height:54px;border-radius:17px;display:grid;place-items:center;font-weight:740;font-size:18px}
+.key:active,.small-key:active{background:#def0e3}
+.key svg{height:20px;width:20px;stroke:currentColor;stroke-width:2.5;fill:none}
+.key.ok{background:#e6f2e8;border:0;font-size:14px}
+.key.blank{background:transparent;border:0}
+.textbar{display:flex;gap:9px}
+.textbar input{flex:1;min-width:0}
+.textbar .primary{min-width:76px}
+.text-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px}
+.small-key{height:37px;background:#f2f6f2;border:1px solid #e3ebe4;border-radius:10px;padding:0 14px;color:#416b53;font-size:12px;font-weight:690;flex:1}
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.control{height:60px;border:1px solid var(--stroke);background:#f7faf8;border-radius:15px;color:#315e49;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.control b{font-size:17px;font-weight:760;line-height:1}
+.control span{font-size:10px;color:#667f70}
+.help{font-size:11px;line-height:1.6;color:#849187;margin:2px 4px 0}
+.note{font-size:10px;color:#99a69b;margin:14px 0 4px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="header-left"><div class="logo">L</div><div><h1>Control Remoto L</h1><p class="subtitle">Tu celular, tu control</p></div></div>
+  <div class="chip">Wi-Fi</div>
+</header>
+<section class="panel slim">
+  <h2>Conectar televisor</h2>
+  <div class="segment" role="group" aria-label="Marca del televisor"><button id="lg" class="active" onclick="brandPick('LG')">LG webOS</button><button id="samsung" onclick="brandPick('SAMSUNG')">Samsung</button></div>
+  <div class="iprow"><input type="text" id="ip" placeholder="IP de tu TV · 192.168.1.20" inputmode="decimal" autocorrect="off" spellcheck="false"/><button class="primary" onclick="connectTV()">Conectar</button></div>
+  <div class="status" id="status" data-state="idle"><div class="dot"></div><span id="statusText">TV y celular en la misma red Wi-Fi</span></div>
+</section>
+<section class="panel">
+  <div class="section-head"><h2>Cursor inteligente</h2><span class="micro">AIR MOUSE</span></div>
+  <div class="motion-row"><div><strong style="font-size:13px">Mover el celular</strong><p>Actívalo y mueve la mano</p></div><button id="motion" class="switch" aria-label="Activar movimiento" aria-pressed="false" onclick="toggleMotion()"><span class="knob"></span></button></div>
+  <div id="pad" class="trackpad" aria-label="Panel táctil para mover el cursor">
+    <svg viewBox="0 0 24 24"><path d="M8 8h8v8H8z"/><path d="M12 1v5m0 12v5M1 12h5m12 0h5"/><path d="m9.6 3 2.4-2 2.4 2M9.6 21l2.4 2 2.4-2M3 9.6 1 12l2 2.4M21 9.6l2 2.4-2 2.4"/></svg>
+    <span>Desliza aquí para mover el puntero</span>
+  </div>
+  <button class="bigclick" onclick="RemoteL.click()"><strong>HACER CLIC</strong><span>Seleccionar en la pantalla</span></button>
+  <div class="sliderrow"><span>Sensibilidad</span><input aria-label="Sensibilidad" type="range" id="sensitivity" min="0.2" max="3" step="0.1" value="1" oninput="changeSensitivity(this.value)"/><output id="sensitivityText">1.0×</output></div>
+</section>
+<section class="panel slim">
+  <div class="section-head"><h2>Navegación</h2><span class="micro">CONTROL CLÁSICO</span></div>
+  <div class="navgrid">
+    <div class="key blank"></div><button class="key" onclick="RemoteL.button('UP')" aria-label="Arriba">↑</button><div class="key blank"></div>
+    <button class="key" onclick="RemoteL.button('LEFT')" aria-label="Izquierda">←</button><button class="key ok" onclick="RemoteL.button('ENTER')">OK</button><button class="key" onclick="RemoteL.button('RIGHT')" aria-label="Derecha">→</button>
+    <div class="key blank"></div><button class="key" onclick="RemoteL.button('DOWN')" aria-label="Abajo">↓</button><div class="key blank"></div>
+  </div>
+  <div class="text-actions"><button class="small-key" onclick="RemoteL.button('BACK')">← Volver</button><button class="small-key" onclick="RemoteL.button('HOME')">Inicio</button><button class="small-key" onclick="RemoteL.button('POWER')">Apagar TV</button></div>
+</section>
+<section class="panel slim">
+  <div class="section-head"><h2>Teclado para la TV</h2><span class="micro">ESCRIBIR</span></div>
+  <p class="legend">Primero selecciona un cuadro de texto en la TV. Escribe aquí con el teclado del celular y pulsa Enviar.</p>
+  <div class="textbar"><input type="text" id="message" placeholder="Escribe aquí…" autocomplete="off"/><button class="primary" onclick="sendText()">Enviar</button></div>
+  <div class="text-actions"><button class="small-key" onclick="RemoteL.button('DELETE')">Borrar letra</button><button class="small-key" onclick="RemoteL.button('TEXT_ENTER')">Intro / Buscar</button></div>
+</section>
+<section class="panel slim"><div class="section-head"><h2>Accesos rápidos</h2><span class="micro">TV</span></div>
+  <div class="controls">
+    <button class="control" onclick="RemoteL.button('VOLUP')"><b>＋</b><span>Volumen</span></button>
+    <button class="control" onclick="RemoteL.button('VOLDOWN')"><b>−</b><span>Volumen</span></button>
+    <button class="control" onclick="RemoteL.button('CHUP')"><b>↑</b><span>Canal</span></button>
+    <button class="control" onclick="RemoteL.button('CHDOWN')"><b>↓</b><span>Canal</span></button>
+  </div>
+</section>
+<p class="help">Algunas aplicaciones de TV restringen el cursor o la escritura remota. En Samsung puedes usar las flechas y OK cuando no aparezca el puntero.</p>
+<p class="note">Control Remoto L · Versión de prueba 1.0</p>
+</main>
+<script>
+let brand='LG',motion=false,lastTouch=null;
+function brandPick(v){brand=v;document.getElementById('lg').classList.toggle('active',v==='LG');document.getElementById('samsung').classList.toggle('active',v==='SAMSUNG');}
+function connectTV(){const ip=document.getElementById('ip').value.trim();if(!ip){updateStatus('error','Escribe la dirección IP de la TV.');return;}RemoteL.connect(brand,ip);}
+function updateStatus(state,description){const e=document.getElementById('status');e.dataset.state=state;document.getElementById('statusText').textContent=description;}
+function toggleMotion(){motion=!motion;document.getElementById('motion').classList.toggle('on',motion);document.getElementById('motion').setAttribute('aria-pressed',motion?'true':'false');RemoteL.motion(motion);}
+function motionUnavailable(){motion=false;document.getElementById('motion').classList.remove('on');updateStatus('error','Este celular no tiene giroscopio; utiliza el panel táctil.');}
+function changeSensitivity(v){document.getElementById('sensitivityText').textContent=Number(v).toFixed(1)+'×';RemoteL.sensitivity(Number(v));}
+function sendText(){const el=document.getElementById('message');if(!el.value)return;RemoteL.text(el.value);el.blur();}
+const pad=document.getElementById('pad');
+pad.addEventListener('pointerdown',ev=>{lastTouch={x:ev.clientX,y:ev.clientY,t:Date.now()};pad.setPointerCapture(ev.pointerId);});
+pad.addEventListener('pointermove',ev=>{if(!lastTouch)return;const dx=(ev.clientX-lastTouch.x)*1.9,dy=(ev.clientY-lastTouch.y)*1.9;lastTouch.x=ev.clientX;lastTouch.y=ev.clientY;RemoteL.move(dx,dy);});
+pad.addEventListener('pointerup',()=>{lastTouch=null});
+pad.addEventListener('pointercancel',()=>{lastTouch=null});
+try{const s=JSON.parse(RemoteL.settings());if(s.ip)document.getElementById('ip').value=s.ip;if(s.brand)brandPick(s.brand);if(s.sensitivity){document.getElementById('sensitivity').value=s.sensitivity;document.getElementById('sensitivityText').textContent=Number(s.sensitivity).toFixed(1)+'×'}if(!s.gyroAvailable){document.querySelector('.motion-row p').textContent='Sin giroscopio; usa el panel táctil';}}catch(e){}
+</script>
+</body>
+</html>
