@@ -91,10 +91,10 @@ button{cursor:pointer;font-family:inherit;touch-action:manipulation}
   <div class="section-head"><h2>Cursor inteligente</h2><span class="micro">AIR MOUSE</span></div>
   <div id="samsungModes" hidden>
     <div class="segment" role="group" aria-label="Modo de movimiento">
-      <button id="navMode" class="active" onclick="chooseMode('NAV')">Selección</button>
+      <button id="navMode" class="active" onclick="chooseMode('NAV')">Navegar sin clic</button>
       <button id="pointerMode" onclick="chooseMode('POINTER')">Puntero (prueba)</button>
     </div>
-    <p class="mode-note" id="modeNote">Recomendado para Samsung: mueve el celular para cambiar de opción y pulsa el botón grande para seleccionar.</p>
+    <p class="mode-note" id="modeNote">Mover el celular solo desplaza la opción resaltada; no abre nada. El botón grande confirma.</p>
   </div>
   <div class="motion-row"><div><strong style="font-size:13px">Mover el celular</strong><p>Actívalo y mueve la mano</p></div><button id="motion" class="switch" aria-label="Activar movimiento" aria-pressed="false" onclick="toggleMotion()"><span class="knob"></span></button></div>
   <div id="pad" class="trackpad" aria-label="Panel táctil para mover el cursor">
@@ -128,13 +128,13 @@ button{cursor:pointer;font-family:inherit;touch-action:manipulation}
   </div>
 </section>
 <p class="help">En Samsung NU7090 y otros modelos, el puntero libre puede no estar disponible. El modo Selección utiliza flechas y OK sin necesitar cursor. LG mantiene su modo de puntero independiente.</p>
-<p class="note">Control Remoto L · Versión de prueba 1.1</p>
+<p class="note">Control Remoto L · Versión de prueba 1.2</p>
 </main>
 <script>
 let brand='LG',motion=false,lastTouch=null,cursorMode='NAV';
 function brandPick(v){brand=v;document.getElementById('lg').classList.toggle('active',v==='LG');document.getElementById('samsung').classList.toggle('active',v==='SAMSUNG');document.getElementById('samsungModes').hidden=v!=='SAMSUNG';renderCursorMode();}
 function chooseMode(v){cursorMode=v==='POINTER'?'POINTER':'NAV';RemoteL.cursorMode(cursorMode);renderCursorMode();}
-function renderCursorMode(){let samsung=brand==='SAMSUNG',nav=cursorMode==='NAV';document.getElementById('navMode').classList.toggle('active',nav);document.getElementById('pointerMode').classList.toggle('active',!nav);document.getElementById('modeNote').textContent=nav?'Recomendado: mueve el celular para desplazarte entre opciones y pulsa el botón grande para confirmar.':'Experimental: intenta mover el cursor real. Algunos Samsung ignoran esta función.';document.getElementById('clickLabel').textContent=samsung&&nav?'OK · SELECCIONAR':'HACER CLIC';document.getElementById('clickHelp').textContent=samsung&&nav?'Equivale al botón OK del control remoto':'Seleccionar en la pantalla';}
+function renderCursorMode(){let samsung=brand==='SAMSUNG',nav=cursorMode==='NAV';document.getElementById('navMode').classList.toggle('active',nav);document.getElementById('pointerMode').classList.toggle('active',!nav);document.getElementById('modeNote').textContent=nav?'Movimiento = flechas sin pulsar OK. Para abrir la opción resaltada utiliza únicamente el botón grande.':'Experimental: intenta mover el cursor real. Algunos Samsung ignoran esta función.';document.getElementById('clickLabel').textContent=samsung&&nav?'OK · SELECCIONAR':'HACER CLIC';document.getElementById('clickHelp').textContent=samsung&&nav?'Equivale al botón OK del control remoto':'Seleccionar en la pantalla';}
 function connectTV(){const ip=document.getElementById('ip').value.trim();if(!ip){updateStatus('error','Escribe la dirección IP de la TV.');return;}RemoteL.connect(brand,ip);}
 function updateStatus(state,description){const e=document.getElementById('status');e.dataset.state=state;document.getElementById('statusText').textContent=description;}
 function toggleMotion(){motion=!motion;document.getElementById('motion').classList.toggle('on',motion);document.getElementById('motion').setAttribute('aria-pressed',motion?'true':'false');RemoteL.motion(motion);}

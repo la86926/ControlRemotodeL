@@ -40,7 +40,7 @@ final class TvClient {
         }
         if (ready && "SAMSUNG".equals(brand)) {
             observer.status("connected", samsungNavigationMode
-                ? "Samsung conectada · Movimiento = flechas, clic = OK."
+                ? "Samsung conectada · Movimiento = flechas sin clic; botón grande = OK."
                 : "Samsung conectada · Puntero experimental; puede no funcionar.");
         }
     }
@@ -311,8 +311,8 @@ final class TvClient {
             navigationX = Math.max(-400, Math.min(400, navigationX + dx));
             navigationY = Math.max(-400, Math.min(400, navigationY + dy));
             long now = SystemClock.elapsedRealtime();
-            if (now - navigationLastCommand < 220) return;
-            if (Math.max(Math.abs(navigationX), Math.abs(navigationY)) < 110) return;
+            if (now - navigationLastCommand < 450) return;
+            if (Math.max(Math.abs(navigationX), Math.abs(navigationY)) < 165) return;
             if (Math.abs(navigationX) >= Math.abs(navigationY)) {
                 direction = navigationX < 0 ? "LEFT" : "RIGHT";
             } else {
@@ -321,7 +321,25 @@ final class TvClient {
             navigationX = navigationY = 0;
             navigationLastCommand = now;
         }
-        button(direction);
+        sendSamsungDirectionWithoutClick(direction);
+    }
+
+    // Gyroscope/touchpad movement must never activate OK or send a mouse click.
+    // Samsung's Cmd=Click is a *key press*, but using Press/Release here keeps
+    // the navigation path explicitly separate from the user-only select button.
+    private void sendSamsungDirectionWithoutClick(String direction) {
+        if (!("LEFT".equals(direction) || "RIGHT".equals(direction) ||
+              "UP".equals(direction) || "DOWN".equals(direction))) return;
+        io.execute(() -> {
+            if (!ready || !"SAMSUNG".equals(brand) || !samsungNavigationMode) return;
+            try {
+                String key = "KEY_" + direction;
+                samsungCommand("SendRemoteKey", "Press", key);
+                samsungCommand("SendRemoteKey", "Release", key);
+            } catch(Exception ex) {
+                observer.status("error", "No se pudo mover la selección.");
+            }
+        });
     }
 
     void text(String value) {
