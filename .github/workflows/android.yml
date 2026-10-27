@@ -29,19 +29,19 @@ jobs:
       - name: Generar APK de prueba
         run: gradle :app:assembleDebug --no-daemon --stacktrace
       - name: Guardar APK con nombre sencillo
-        run: cp app/build/outputs/apk/debug/app-debug.apk ControlRemotoL-v1.1.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk ControlRemotoL-v1.2.apk
       - name: Publicar APK descargable
         if: success()
         uses: actions/upload-artifact@v7
         with:
-          path: ControlRemotoL-v1.1.apk
+          path: ControlRemotoL-v1.2.apk
           archive: false
       - name: Publicar versión en Releases
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v1.1.0-beta ControlRemotoL-v1.1.apk \
-            --title "Control Remoto L 1.1 beta" \
-            --notes "Samsung: modo Selección por movimiento (flechas y OK) y puntero experimental. LG: puntero webOS. Compatibilidad física pendiente de verificar." \
+          gh release create v1.2.0-beta ControlRemotoL-v1.2.apk \
+            --title "Control Remoto L 1.2 beta" \
+            --notes "Samsung: movimiento sin enviar clic ni ENTER, flechas Press/Release más lentas; botón grande para OK. Puntero experimental en Samsung y puntero webOS en LG. Compatibilidad física pendiente de verificar." \
             --target "$GITHUB_SHA"
